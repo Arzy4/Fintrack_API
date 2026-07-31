@@ -6,6 +6,7 @@ import { UsersModule } from './users/users.module';
 import { AccountsModule } from './accounts/accounts.module';
 import { CategoriesModule } from './categories/categories.module';
 import { TransactionsModule } from './transactions/transactions.module';
+import { AccountsService } from './accounts/accounts.service';
 
 @Module({
   imports: [

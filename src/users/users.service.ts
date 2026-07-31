@@ -1,21 +1,41 @@
 import { Injectable } from '@nestjs/common';
+import { User } from './interfaces/users.interfaces';
+import { CreateUserDto } from './dto/create-users.dto';
 
 @Injectable()
 export class UsersService {
-    findAll() {
-        return [
-            {
-                id: 1,
-                name: 'Robby Arzy',
-                email: 'robby@example.com',
-                role: 'user',
-            },
-            {
-                id: 2,
-                name: 'Amanda Wijaya',
-                email: 'amanda@example.com',
-                role: 'user',
-            }
-        ]
-    }
+  private users: User[] = [
+    {
+      id: 1,
+      name: 'John Doe',
+      email: 'john@example.com',
+      password: 'password123',
+      created_at: '2026-07-13T21:52:46.719Z',
+    },
+    {
+      id: 2,
+      name: 'Jane Smith',
+      email: 'jane@example.com',
+      password: 'password456',
+      created_at: '2026-07-13T21:52:46.719Z',
+    },
+  ];
+
+  private nextId = 3;
+
+  findAll(): User[] {
+    return this.users;
+  }
+
+  create(createUserDto: CreateUserDto): User {
+    const user: User = {
+      id: this.nextId++,
+      ...createUserDto,
+      created_at: new Date().toISOString(),
+    };
+
+    this.users.push(user);
+
+    return user;
+  }
 }
