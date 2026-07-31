@@ -1,9 +1,9 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from '../src/app.module';
 import { ValidationPipe } from '@nestjs/common';
-import serverlessExpress from '@vendia/serverless-express';
+import serverlessExpress from '@codegenie/serverless-express';
 
-let server;
+let cachedServer;
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -20,12 +20,15 @@ async function bootstrap() {
 
   await app.init();
 
+  const expressApp = app.getHttpAdapter().getInstance();
+
   return serverlessExpress({
-    app: app.getHttpAdapter().getInstance(),
+    app: expressApp,
   });
 }
 
 export default async function handler(req, res) {
-  server = server ?? (await bootstrap());
-  return server(req, res);
+  cachedServer = cachedServer ?? (await bootstrap());
+
+  return cachedServer(req, res);
 }
