@@ -1,34 +1,33 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from '../src/app.module';
 import { ValidationPipe } from '@nestjs/common';
-import serverlessExpress from '@codegenie/serverless-express';
 
-let cachedServer;
+let app;
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  if (!app) {
+    app = await NestFactory.create(AppModule);
 
-  app.setGlobalPrefix('api');
+    app.setGlobalPrefix('api');
 
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-    }),
-  );
+    app.useGlobalPipes(
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+      }),
+    );
 
-  await app.init();
+    await app.init();
+  }
 
-  const expressApp = app.getHttpAdapter().getInstance();
-
-  return serverlessExpress({
-    app: expressApp,
-  });
+  return app;
 }
 
 export default async function handler(req, res) {
-  cachedServer = cachedServer ?? (await bootstrap());
+  const app = await bootstrap();
 
-  return cachedServer(req, res);
+  const instance = app.getHttpAdapter().getInstance();
+
+  return instance(req, res);
 }
