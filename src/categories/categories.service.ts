@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Category } from './interfaces/categories.interfaces';
+import { CategoryResponse } from './interfaces/categories-response.interfaces';
 import { CreateCategoryDto } from './dto/create-categories.dto';
 import { UpdateCategoryDto } from './dto/update-categories.dto';
 
@@ -39,7 +40,7 @@ export class CategoriesService {
     return category;
   }
 
-  create(createCategoryDto: CreateCategoryDto): Category {
+  create(createCategoryDto: CreateCategoryDto): CategoryResponse {
     const category: Category = {
       id: this.nextId++,
       ...createCategoryDto,
@@ -47,18 +48,29 @@ export class CategoriesService {
 
     this.categories.push(category);
 
-    return category;
+    return {
+      message: 'New Category was successfully created.',
+      data: category,
+    };
   }
 
-  update(id: number, updateCategoryDto: UpdateCategoryDto): Category {
+  update(
+    id: number,
+    updateCategoryDto: UpdateCategoryDto,
+  ): CategoryResponse {
     const category = this.findOne(id);
 
     Object.assign(category, updateCategoryDto);
 
-    return category;
+    const updatedFields = Object.keys(updateCategoryDto).join(', ');
+
+    return {
+      message: `${updatedFields} in Category with ID ${id} was successfully updated.`,
+      data: category,
+    };
   }
 
-  remove(id: number): Category {
+  remove(id: number): CategoryResponse {
     const index = this.categories.findIndex((c) => c.id === id);
 
     if (index === -1) {
@@ -69,6 +81,9 @@ export class CategoriesService {
 
     this.categories.splice(index, 1);
 
-    return deleted;
+    return {
+      message: `Category with ID ${id} was successfully deleted.`,
+      data: deleted,
+    };
   }
 }

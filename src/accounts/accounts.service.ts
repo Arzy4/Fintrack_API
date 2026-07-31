@@ -1,7 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Patch } from '@nestjs/common';
 import { Account } from './interfaces/account.interfaces';
 import { CreateAccountDto } from './dto/create-account.dto';
 import { UpdateAccountDto } from './dto/update-account.dto';
+import { AccountResponse } from './interfaces/account-response.interfaces';
 
 @Injectable()
 export class AccountsService {
@@ -48,7 +49,7 @@ export class AccountsService {
     return account;
   }
 
-  create(createAccountDto: CreateAccountDto): Account {
+  create(createAccountDto: CreateAccountDto): AccountResponse {
     const account: Account = {
       id: this.nextId++,
       ...createAccountDto,
@@ -57,18 +58,26 @@ export class AccountsService {
 
     this.accounts.push(account);
 
-    return account;
+    return {
+      message: `New Account was successfully created`,
+      data: account,
+    };
   }
 
-  update(id: number, updateAccountDto: UpdateAccountDto): Account {
+  update(id: number, updateAccountDto: UpdateAccountDto): AccountResponse {
     const account = this.findOne(id);
 
     Object.assign(account, updateAccountDto);
 
-    return account;
+    const updatedField = Object.keys(updateAccountDto)[0];
+
+    return {
+      message: `${updatedField} in Account with id ${id} was successfully Updated.`,
+      data: account,
+    };
   }
 
-  remove(id: number): Account {
+  remove(id: number): AccountResponse {
     const index = this.accounts.findIndex((a) => a.id === id);
 
     if (index === -1) {
@@ -79,7 +88,10 @@ export class AccountsService {
 
     this.accounts.splice(index, 1);
 
-    return deleted;
+    return {
+      message: `Account with ID ${id} was successfully deleted.`,
+      data: deleted,
+    };
   }
 
   updateBalance(accountId: number, newBalance: number): Account {

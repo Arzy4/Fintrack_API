@@ -3,6 +3,7 @@ import { Transaction } from './interfaces/transactions.interfaces';
 import { CreateTransactionDto } from './dto/create-transactions.dto';
 import { UpdateTransactionDto } from './dto/update-transactions.dto';
 import { AccountsService } from '../accounts/accounts.service';
+import { TransactionResponse } from './interfaces/transactions-response.interfaces';
 
 @Injectable()
 export class TransactionsService {
@@ -79,7 +80,7 @@ export class TransactionsService {
     this.accountsService.updateBalance(accountId, balance);
   }
 
-  create(createTransactionDto: CreateTransactionDto): Transaction {
+  create(createTransactionDto: CreateTransactionDto): TransactionResponse {
     const transaction: Transaction = {
       id: this.nextId++,
       ...createTransactionDto,
@@ -90,13 +91,16 @@ export class TransactionsService {
 
     this.recalculateBalance(transaction.account_id);
 
-    return transaction;
+    return {
+      message: `New Transaction was successfully created`,
+      data: transaction,
+    };
   }
 
   update(
     id: number,
     updateTransactionDto: UpdateTransactionDto,
-  ): Transaction {
+  ): TransactionResponse {
     const transaction = this.findOne(id);
 
     // Save the old account ID in case the transaction is moved
@@ -115,10 +119,15 @@ export class TransactionsService {
       this.recalculateBalance(updateTransactionDto.account_id);
     }
 
-    return transaction;
+    const updatedFields = Object.keys(updateTransactionDto).join(', ');
+
+    return {
+      message: `${updatedFields} in Transaction with ID ${id} was successfully updated`,
+      data: transaction,
+    };
   }
 
-  remove(id: number): Transaction {
+  remove(id: number): TransactionResponse {
     const index = this.transactions.findIndex((t) => t.id === id);
 
     if (index === -1) {
@@ -133,6 +142,9 @@ export class TransactionsService {
 
     this.recalculateBalance(deleted.account_id);
 
-    return deleted;
+    return {
+      message: `Transaction with ID ${id} was successfully deleted`,
+      data: deleted,
+    };
   }
 }
