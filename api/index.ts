@@ -1,17 +1,12 @@
 import { NestFactory } from '@nestjs/core';
-import { ExpressAdapter } from '@nestjs/platform-express';
 import { AppModule } from '../src/app.module';
-import express from 'express';
-import serverless from 'serverless-http';
 import { ValidationPipe } from '@nestjs/common';
+import serverlessExpress from '@vendia/serverless-express';
 
-const expressApp = express();
+let server;
 
 async function bootstrap() {
-  const app = await NestFactory.create(
-    AppModule,
-    new ExpressAdapter(expressApp),
-  );
+  const app = await NestFactory.create(AppModule);
 
   app.setGlobalPrefix('api');
 
@@ -24,15 +19,13 @@ async function bootstrap() {
   );
 
   await app.init();
+
+  return serverlessExpress({
+    app: app.getHttpAdapter().getInstance(),
+  });
 }
 
-let handler: any;
-
-export default async function (req: any, res: any) {
-  if (!handler) {
-    await bootstrap();
-    handler = serverless(expressApp);
-  }
-
-  return handler(req, res);
+export default async function handler(req, res) {
+  server = server ?? (await bootstrap());
+  return server(req, res);
 }
