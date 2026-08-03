@@ -2,56 +2,60 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Transaction } from './interfaces/transactions.interfaces';
 import { CreateTransactionDto } from './dto/create-transactions.dto';
 import { UpdateTransactionDto } from './dto/update-transactions.dto';
-import { AccountsService } from '../accounts/accounts.service';
 import { TransactionResponse } from './interfaces/transactions-response.interfaces';
+import { PrismaService } from '../prisma/prisma.service';
+import { AccountsService } from '../accounts/accounts.service';
 
 @Injectable()
 export class TransactionsService {
   constructor(
+    private readonly prisma: PrismaService,
     private readonly accountsService: AccountsService,
   ) {}
 
-  private transactions: Transaction[] = [
-    {
-      id: 1,
-      account_id: 1,
-      category_id: 3,
-      type: 'income',
-      amount: 5000000,
-      description: 'Monthly Salary',
-      transaction_date: '2026-07-01',
-      created_at: '2026-07-13T21:52:46.719Z',
-    },
-    {
-      id: 2,
-      account_id: 1,
-      category_id: 1,
-      type: 'expense',
-      amount: 50000,
-      description: 'Lunch',
-      transaction_date: '2026-07-02',
-      created_at: '2026-07-13T21:52:46.719Z',
-    },
-    {
-      id: 3,
-      account_id: 2,
-      category_id: 2,
-      type: 'expense',
-      amount: 25000,
-      description: 'Bus Ticket',
-      transaction_date: '2026-07-03',
-      created_at: '2026-07-13T21:52:46.719Z',
-    },
-  ];
-
-  private nextId = 4;
-
-  findAll(): Transaction[] {
-    return this.transactions;
+  async findAll() {
+    return this.prisma.transactions.findMany({
+      include: {
+        accounts: {
+          select: {
+            name: true,
+            type: true,
+            balance: true,
+          }
+        },
+        categories: {
+          select: {
+            name: true,
+            type: true,
+          }
+        }
+      }
+    });
   }
 
-  findOne(id: number): Transaction {
-    const transaction = this.transactions.find((t) => t.id === id);
+  async findOne(
+    id: number
+  ): Promise<Transaction> {
+    const transaction = await this.prisma.transactions.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        accounts: {
+          select: {
+            name: true,
+            type: true,
+            balance: true,
+          }
+        },
+        categories: {
+          select: {
+            name: true,
+            type: true,
+          }
+        }
+      }
+    });
 
     if (!transaction) {
       throw new NotFoundException(
@@ -62,34 +66,45 @@ export class TransactionsService {
     return transaction;
   }
 
-  private recalculateBalance(accountId: number): void {
-    const transactions = this.transactions.filter(
-      (transaction) => transaction.account_id === accountId,
-    );
+  private async recalculateBalance(
+    accountId: number
+  ): Promise<void> {
+    const transactions = await this.prisma.transactions.findMany({
+      where: {
+        account_id: accountId,
+      }
+    });
 
     let balance = 0;
 
     for (const transaction of transactions) {
+      const amount = Number(transaction.amount); // Convert Prisma.Decimal to number
+
       if (transaction.type === 'income') {
-        balance += transaction.amount;
+        balance += amount;
       } else {
-        balance -= transaction.amount;
+        balance -= amount;
       }
     }
 
     this.accountsService.updateBalance(accountId, balance);
   }
 
-  create(createTransactionDto: CreateTransactionDto): TransactionResponse {
-    const transaction: Transaction = {
-      id: this.nextId++,
-      ...createTransactionDto,
-      created_at: new Date().toISOString(),
-    };
+  async create(
+    createTransactionDto: CreateTransactionDto
+  ): Promise<TransactionResponse> {
+    const transaction = await this.prisma.transactions.create({
+      data: {
+        account_id: createTransactionDto.account_id,
+        category_id: createTransactionDto.category_id,
+        type: createTransactionDto.type,
+        amount: createTransactionDto.amount,
+        description: createTransactionDto.description,
+        transaction_date: new Date(createTransactionDto.transaction_date),
+      }
+    })
 
-    this.transactions.push(transaction);
-
-    this.recalculateBalance(transaction.account_id);
+    await this.recalculateBalance(transaction.account_id);
 
     return {
       message: `New Transaction was successfully created`,
@@ -97,19 +112,24 @@ export class TransactionsService {
     };
   }
 
-  update(
+  async update(
     id: number,
     updateTransactionDto: UpdateTransactionDto,
-  ): TransactionResponse {
-    const transaction = this.findOne(id);
+  ): Promise<TransactionResponse> {
+    const transaction = await this.findOne(id);
 
     // Save the old account ID in case the transaction is moved
     const oldAccountId = transaction.account_id;
 
-    Object.assign(transaction, updateTransactionDto);
+    const updatedTransaction = await this.prisma.transactions.update({
+      where:{
+        id,
+      },
+      data: updateTransactionDto,
+    });
 
     // Recalculate the old account
-    this.recalculateBalance(oldAccountId);
+    await this.recalculateBalance(oldAccountId);
 
     // If the account changed, recalculate the new one too
     if (
@@ -123,24 +143,22 @@ export class TransactionsService {
 
     return {
       message: `${updatedFields} in Transaction with ID ${id} was successfully updated`,
-      data: transaction,
+      data: updatedTransaction,
     };
   }
 
-  remove(id: number): TransactionResponse {
-    const index = this.transactions.findIndex((t) => t.id === id);
+  async remove(
+    id: number
+  ): Promise<TransactionResponse> {
+    const transaction = await this.findOne(id);
 
-    if (index === -1) {
-      throw new NotFoundException(
-        `Transaction with ID ${id} not found`,
-      );
-    }
+    const deleted = await this.prisma.transactions.delete({
+      where:{
+        id,
+      },
+    });;
 
-    const deleted = this.transactions[index];
-
-    this.transactions.splice(index, 1);
-
-    this.recalculateBalance(deleted.account_id);
+    await this.recalculateBalance(transaction.account_id);
 
     return {
       message: `Transaction with ID ${id} was successfully deleted`,

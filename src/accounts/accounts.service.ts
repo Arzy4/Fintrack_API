@@ -1,75 +1,69 @@
-import { Injectable, NotFoundException, Patch } from '@nestjs/common';
-import { Account } from './interfaces/account.interfaces';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateAccountDto } from './dto/create-account.dto';
 import { UpdateAccountDto } from './dto/update-account.dto';
 import { AccountResponse } from './interfaces/account-response.interfaces';
 
 @Injectable()
 export class AccountsService {
-  private accounts: Account[] = [
-    {
-      id: 1,
-      user_id: 1,
-      name: 'BCA Savings',
-      type: 'bank',
-      balance: 5000000,
-      created_at: '2026-07-13T21:52:46.719Z',
-    },
-    {
-      id: 2,
-      user_id: 1,
-      name: 'GoPay',
-      type: 'e-wallet',
-      balance: 750000,
-      created_at: '2026-07-13T21:52:46.719Z',
-    },
-    {
-      id: 3,
-      user_id: 2,
-      name: 'Mandiri Savings',
-      type: 'bank',
-      balance: 3200000,
-      created_at: '2026-07-13T21:52:46.719Z',
-    },
-  ];
+  constructor(
+    private readonly prisma: PrismaService,
+  ) {}
 
-  private nextId = 4;
-
-  findAll(): Account[] {
-    return this.accounts;
+  async findAll(){
+    return this.prisma.accounts.findMany();
   }
 
-  findOne(id: number): Account {
-    const account = this.accounts.find((a) => a.id === id);
+  async findOne(id: number){
+    const account = await this.prisma.accounts.findUnique({
+      where: {
+        id,
+      },
+    });
 
-    if (!account) {
-      throw new NotFoundException(`Account with ID ${id} not found`);
+    if (!account){
+      throw new NotFoundException(
+        `Account with ID ${id} not found`,
+      );
     }
 
     return account;
   }
 
-  create(createAccountDto: CreateAccountDto): AccountResponse {
-    const account: Account = {
-      id: this.nextId++,
-      ...createAccountDto,
-      created_at: new Date().toISOString(),
-    };
+  async create(
+    createAccountDto: CreateAccountDto,
+  ): Promise<AccountResponse>{
+    const account = await this.prisma.accounts.create({
+      data: {
+        user_id: createAccountDto.user_id,
+        name: createAccountDto.name,
+        type: createAccountDto.type,
+        balance: createAccountDto.balance,
+      },
+    });
 
-    this.accounts.push(account);
 
     return {
-      message: `New Account was successfully created`,
+      message: "New Account was successfully created",
       data: account,
     };
   }
 
-  update(id: number, updateAccountDto: UpdateAccountDto): AccountResponse {
-    const account = this.findOne(id);
+  async update(
+    id: number,
+    updateAccountDto: UpdateAccountDto,
+  ): Promise<AccountResponse>{
+    await this.findOne(id);
 
-    Object.assign(account, updateAccountDto);
+    const account = await this.prisma.accounts.update({
+      where:{
+        id,
+      },
+      data: updateAccountDto,
+    });
 
     const updatedField = Object.keys(updateAccountDto)[0];
+
 
     return {
       message: `${updatedField} in Account with id ${id} was successfully Updated.`,
@@ -77,28 +71,36 @@ export class AccountsService {
     };
   }
 
-  remove(id: number): AccountResponse {
-    const index = this.accounts.findIndex((a) => a.id === id);
+  async remove(
+    id: number,
+  ): Promise<AccountResponse>{
+    await this.findOne(id);
 
-    if (index === -1) {
-      throw new NotFoundException(`Account with ID ${id} not found`);
-    }
+    const deleted = await this.prisma.accounts.delete({
+      where:{
+        id,
+      },
+    });
 
-    const deleted = this.accounts[index];
-
-    this.accounts.splice(index, 1);
-
-    return {
+    return{
       message: `Account with ID ${id} was successfully deleted.`,
       data: deleted,
-    };
+    }
   }
 
-  updateBalance(accountId: number, newBalance: number): Account {
-    const account = this.findOne(accountId);
+  async updateBalance(
+    accountId: number,
+    newBalance: number,
+  ){
+    await this.findOne(accountId);
 
-    account.balance = newBalance;
-
-    return account;
+    return this.prisma.accounts.update({
+      where: {
+        id: accountId,
+      },
+      data: {
+        balance: newBalance,
+      }
+    });
   }
 }

@@ -2,36 +2,25 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Category } from './interfaces/categories.interfaces';
 import { CategoryResponse } from './interfaces/categories-response.interfaces';
 import { CreateCategoryDto } from './dto/create-categories.dto';
+import { PrismaService } from '../prisma/prisma.service';
 import { UpdateCategoryDto } from './dto/update-categories.dto';
 
 @Injectable()
 export class CategoriesService {
-  private categories: Category[] = [
-    {
-      id: 1,
-      name: 'Food',
-      type: 'expense',
-    },
-    {
-      id: 2,
-      name: 'Transportation',
-      type: 'expense',
-    },
-    {
-      id: 3,
-      name: 'Salary',
-      type: 'income',
-    },
-  ];
+  constructor(
+    private readonly prisma: PrismaService,
+  ) {}
 
-  private nextId = 4;
-
-  findAll(): Category[] {
-    return this.categories;
+  async findAll() {
+    return this.prisma.categories.findMany();
   }
 
-  findOne(id: number): Category {
-    const category = this.categories.find((c) => c.id === id);
+  async findOne(id: number) {
+    const category = await this.prisma.categories.findUnique({
+      where:{
+        id,
+      },
+    });
 
     if (!category) {
       throw new NotFoundException(`Category with ID ${id} not found`);
@@ -40,13 +29,15 @@ export class CategoriesService {
     return category;
   }
 
-  create(createCategoryDto: CreateCategoryDto): CategoryResponse {
-    const category: Category = {
-      id: this.nextId++,
-      ...createCategoryDto,
-    };
-
-    this.categories.push(category);
+  async create(
+    createCategoryDto: CreateCategoryDto
+  ): Promise<CategoryResponse> {
+    const category = await this.prisma.categories.create({
+      data: {
+        name: createCategoryDto.name,
+        type: createCategoryDto.type,
+      }
+    })
 
     return {
       message: 'New Category was successfully created.',
@@ -54,11 +45,18 @@ export class CategoriesService {
     };
   }
 
-  update(
+  async update(
     id: number,
     updateCategoryDto: UpdateCategoryDto,
-  ): CategoryResponse {
-    const category = this.findOne(id);
+  ): Promise<CategoryResponse> {
+    await this.findOne(id);
+
+    const category = await this.prisma.categories.update({
+      where: {
+        id,
+      },
+      data: updateCategoryDto,
+    });
 
     Object.assign(category, updateCategoryDto);
 
@@ -70,16 +68,16 @@ export class CategoriesService {
     };
   }
 
-  remove(id: number): CategoryResponse {
-    const index = this.categories.findIndex((c) => c.id === id);
+  async remove(
+    id: number
+  ): Promise<CategoryResponse> {
+    await this.findOne(id);
 
-    if (index === -1) {
-      throw new NotFoundException(`Category with ID ${id} not found`);
-    }
-
-    const deleted = this.categories[index];
-
-    this.categories.splice(index, 1);
+    const deleted = await this.prisma.categories.delete({
+      where: {
+        id,
+      },
+    });
 
     return {
       message: `Category with ID ${id} was successfully deleted.`,
