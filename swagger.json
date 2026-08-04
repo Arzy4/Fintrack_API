@@ -1,0 +1,667 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/api/health": {
+      "get": {
+        "description": "Verify that the FinTrack API is running.",
+        "operationId": "AppController_health",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "API is running successfully."
+          }
+        },
+        "summary": "",
+        "tags": [
+          "App"
+        ]
+      }
+    },
+    "/api/users": {
+      "get": {
+        "description": "Retrieve a list of all registered users.",
+        "operationId": "UsersController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Users retrieved successfully."
+          }
+        },
+        "summary": "",
+        "tags": [
+          "Users"
+        ]
+      },
+      "post": {
+        "description": "Create a new user account.",
+        "operationId": "UsersController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User created successfully."
+          }
+        },
+        "summary": "",
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/api/users/{id}": {
+      "patch": {
+        "description": "Update an existing user by ID.",
+        "operationId": "UsersController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "User ID",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User updated successfully."
+          }
+        },
+        "summary": "",
+        "tags": [
+          "Users"
+        ]
+      },
+      "delete": {
+        "description": "Delete a user by ID.",
+        "operationId": "UsersController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "User ID",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User deleted successfully."
+          }
+        },
+        "summary": "",
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/api/accounts": {
+      "get": {
+        "description": "Retrieve a list of all financial accounts.",
+        "operationId": "AccountsController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Accounts retrieved successfully."
+          }
+        },
+        "summary": "",
+        "tags": [
+          "Accounts"
+        ]
+      },
+      "post": {
+        "description": "Create a financial account for a user.",
+        "operationId": "AccountsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAccountDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Account created successfully."
+          }
+        },
+        "summary": "",
+        "tags": [
+          "Accounts"
+        ]
+      }
+    },
+    "/api/accounts/{id}": {
+      "get": {
+        "description": "Retrieve a financial account by its ID.",
+        "operationId": "AccountsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Account ID",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Account retrieved successfully."
+          }
+        },
+        "summary": "",
+        "tags": [
+          "Accounts"
+        ]
+      },
+      "patch": {
+        "description": "Update an existing financial account.",
+        "operationId": "AccountsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Account ID",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAccountDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Account updated successfully."
+          }
+        },
+        "summary": "",
+        "tags": [
+          "Accounts"
+        ]
+      },
+      "delete": {
+        "description": "Delete a financial account by ID.",
+        "operationId": "AccountsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Account ID",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Account deleted successfully."
+          }
+        },
+        "summary": "",
+        "tags": [
+          "Accounts"
+        ]
+      }
+    },
+    "/api/categories": {
+      "get": {
+        "description": "Retrieve all transaction categories.",
+        "operationId": "CategoriesController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Categories retrieved successfully."
+          }
+        },
+        "summary": "",
+        "tags": [
+          "Categories"
+        ]
+      },
+      "post": {
+        "description": "Create a new transaction category.",
+        "operationId": "CategoriesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCategoryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Category created successfully."
+          }
+        },
+        "summary": "",
+        "tags": [
+          "Categories"
+        ]
+      }
+    },
+    "/api/categories/{id}": {
+      "get": {
+        "description": "Retrieve a transaction category by its ID.",
+        "operationId": "CategoriesController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Category ID",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Category retrieved successfully."
+          }
+        },
+        "summary": "",
+        "tags": [
+          "Categories"
+        ]
+      },
+      "patch": {
+        "description": "Update an existing transaction category.",
+        "operationId": "CategoriesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Category ID",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCategoryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Category updated successfully."
+          }
+        },
+        "summary": "",
+        "tags": [
+          "Categories"
+        ]
+      },
+      "delete": {
+        "description": "Delete a transaction category by ID.",
+        "operationId": "CategoriesController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Category ID",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Category deleted successfully."
+          }
+        },
+        "summary": "",
+        "tags": [
+          "Categories"
+        ]
+      }
+    },
+    "/api/transactions": {
+      "get": {
+        "description": "Retrieve a list of all transactions, including their related account and category information.",
+        "operationId": "TransactionsController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Transactions retrieved successfully."
+          }
+        },
+        "summary": "",
+        "tags": [
+          "Transactions"
+        ]
+      },
+      "post": {
+        "description": "Create a new financial transaction.",
+        "operationId": "TransactionsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTransactionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Transaction created successfully."
+          }
+        },
+        "summary": "",
+        "tags": [
+          "Transactions"
+        ]
+      }
+    },
+    "/api/transactions/{id}": {
+      "get": {
+        "description": "Retrieve a transaction by its ID, including the related account and category information.",
+        "operationId": "TransactionsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Transaction ID",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Transaction retrieved successfully."
+          }
+        },
+        "summary": "",
+        "tags": [
+          "Transactions"
+        ]
+      },
+      "patch": {
+        "description": "Update an existing financial transaction.",
+        "operationId": "TransactionsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Transaction ID",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTransactionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Transaction updated successfully."
+          }
+        },
+        "summary": "",
+        "tags": [
+          "Transactions"
+        ]
+      },
+      "delete": {
+        "description": "Delete a financial transaction by its ID.",
+        "operationId": "TransactionsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Transaction ID",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Transaction deleted successfully."
+          }
+        },
+        "summary": "",
+        "tags": [
+          "Transactions"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Fintrack API",
+    "description": "The Fintrack API description",
+    "version": "1.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "schemas": {
+      "CreateUserDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "John Doe",
+            "description": "Full name of the user"
+          },
+          "email": {
+            "type": "string",
+            "example": "john.doe@example.com",
+            "description": "Unique email address of the user"
+          },
+          "password": {
+            "type": "string",
+            "example": "password123",
+            "description": "Password for the user account (minimum 8 characters)",
+            "minLength": 8
+          }
+        },
+        "required": [
+          "name",
+          "email",
+          "password"
+        ]
+      },
+      "UpdateUserDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "CreateAccountDto": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "number",
+            "example": 1,
+            "description": "ID of the user who owns this account"
+          },
+          "name": {
+            "type": "string",
+            "example": "BCA Savings",
+            "description": "Name of the financial account"
+          },
+          "type": {
+            "type": "string",
+            "example": "bank",
+            "enum": [
+              "bank",
+              "e-wallet",
+              "cash"
+            ],
+            "description": "Type of financial account"
+          },
+          "balance": {
+            "type": "number",
+            "example": 5000000,
+            "description": "Current account balance",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "user_id",
+          "name",
+          "type",
+          "balance"
+        ]
+      },
+      "UpdateAccountDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "CreateCategoryDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Food",
+            "description": "Name of the transaction category"
+          },
+          "type": {
+            "type": "string",
+            "example": "expense",
+            "enum": [
+              "income",
+              "expense"
+            ],
+            "description": "Type of category (income or expense)"
+          }
+        },
+        "required": [
+          "name",
+          "type"
+        ]
+      },
+      "UpdateCategoryDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "CreateTransactionDto": {
+        "type": "object",
+        "properties": {
+          "account_id": {
+            "type": "number",
+            "example": 1,
+            "description": "ID of the account where the transaction is recorded"
+          },
+          "category_id": {
+            "type": "number",
+            "example": 2,
+            "description": "ID of the category assigned to this transaction"
+          },
+          "type": {
+            "type": "string",
+            "example": "expense",
+            "enum": [
+              "income",
+              "expense"
+            ],
+            "description": "Type of transaction (income or expense)"
+          },
+          "amount": {
+            "type": "number",
+            "example": 50000,
+            "description": "Transaction amount",
+            "minimum": 1
+          },
+          "description": {
+            "type": "string",
+            "example": "Lunch at a restaurant",
+            "description": "Short description of the transaction"
+          },
+          "transaction_date": {
+            "type": "string",
+            "example": "2026-08-04",
+            "description": "Transaction date in YYYY-MM-DD format",
+            "format": "date"
+          }
+        },
+        "required": [
+          "account_id",
+          "category_id",
+          "type",
+          "amount",
+          "description",
+          "transaction_date"
+        ]
+      },
+      "UpdateTransactionDto": {
+        "type": "object",
+        "properties": {}
+      }
+    }
+  }
+}
