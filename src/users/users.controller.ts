@@ -25,6 +25,22 @@ export class UsersController {
   }
 
   @ApiOperation({
+    description: 'Retrieve a specific user by ID.',
+  })
+  @ApiParam({
+    name: 'id',
+    example: 1,
+    description: 'User ID',
+  })
+  @ApiOkResponse({
+    description: 'User retrieved successfully.',
+  })
+  @Get(`:id`)
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.usersService.findOne(id);
+  }
+
+  @ApiOperation({
     description: 'Create a new user account.',
   })
   @ApiCreatedResponse({

@@ -280,6 +280,31 @@ curl -X GET https://nestjs-project-five.vercel.app/api/users
 
 ---
 
+### GET /users/:id
+
+Retrieves a specific users by its ID.
+
+**Request**
+
+```bash
+curl -X GET https://nestjs-project-five.vercel.app/api/users/1
+```
+
+**Response**
+
+```json
+{
+    "id": 1,
+    "name": "Robby Arzy",
+    "email": "robby@example.com",
+    "password": "password123",
+    "role": "user",
+    "created_at": "2026-08-03T14:19:18.048Z"
+}
+```
+
+---
+
 ### POST /users
 
 Creates a new user.
