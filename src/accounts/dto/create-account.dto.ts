@@ -12,14 +12,6 @@ import { AccountType } from '../enums/account-type.enum';
 
 export class CreateAccountDto {
   @ApiProperty({
-    example: 1,
-    description: 'ID of the user who owns this account',
-  })
-  @IsInt()
-  @IsPositive()
-  user_id!: number;
-
-  @ApiProperty({
     example: 'BCA Savings',
     description: 'Name of the financial account',
   })

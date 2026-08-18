@@ -10,14 +10,19 @@ export class AccountsService {
     private readonly prisma: PrismaService,
   ) {}
 
-  async findAll(){
-    return this.prisma.accounts.findMany();
+  async findAll(userId: number){
+    return this.prisma.accounts.findMany({
+      where: {
+        user_id: userId,
+      }
+    });
   }
 
-  async findOne(id: number){
-    const account = await this.prisma.accounts.findUnique({
+  async findOne(id: number, userId: number){
+    const account = await this.prisma.accounts.findFirst({
       where: {
         id,
+        user_id: userId,
       },
     });
 
@@ -32,10 +37,11 @@ export class AccountsService {
 
   async create(
     createAccountDto: CreateAccountDto,
+    userId: number,
   ): Promise<AccountResponse>{
     const account = await this.prisma.accounts.create({
       data: {
-        user_id: createAccountDto.user_id,
+        user_id: userId,
         name: createAccountDto.name,
         type: createAccountDto.type,
         balance: createAccountDto.balance,
@@ -52,8 +58,9 @@ export class AccountsService {
   async update(
     id: number,
     updateAccountDto: UpdateAccountDto,
+    userId: number
   ): Promise<AccountResponse>{
-    await this.findOne(id);
+    await this.findOne(id, userId);
 
     const account = await this.prisma.accounts.update({
       where:{
@@ -73,8 +80,9 @@ export class AccountsService {
 
   async remove(
     id: number,
+    userId: number
   ): Promise<AccountResponse>{
-    await this.findOne(id);
+    await this.findOne(id, userId);
 
     const deleted = await this.prisma.accounts.delete({
       where:{
@@ -91,8 +99,9 @@ export class AccountsService {
   async updateBalance(
     accountId: number,
     newBalance: number,
+    userId: number
   ){
-    await this.findOne(accountId);
+    await this.findOne(accountId, userId);
 
     return this.prisma.accounts.update({
       where: {

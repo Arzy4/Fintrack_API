@@ -27,12 +27,20 @@ export class UsersService {
   
       if (!user) {
         throw new NotFoundException(
-          `Transaction with ID ${id} not found`,
+          `User with ID ${id} not found`,
         );
       }
   
       return user;
     }
+
+  async findByEmail(email: string) {
+    return this.prisma.users.findUnique({
+      where: {
+        email,
+      },
+    });
+  }
 
   async create(
     createUserDto: CreateUserDto,

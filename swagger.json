@@ -58,6 +58,31 @@
       }
     },
     "/api/users/{id}": {
+      "get": {
+        "description": "Retrieve a specific user by ID.",
+        "operationId": "UsersController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "User ID",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User retrieved successfully."
+          }
+        },
+        "summary": "",
+        "tags": [
+          "Users"
+        ]
+      },
       "patch": {
         "description": "Update an existing user by ID.",
         "operationId": "UsersController_update",
@@ -499,6 +524,54 @@
           "Transactions"
         ]
       }
+    },
+    "/api/auth/register": {
+      "post": {
+        "operationId": "AuthController_register",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "operationId": "AuthController_login",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Auth"
+        ]
+      }
     }
   },
   "info": {
@@ -544,11 +617,6 @@
       "CreateAccountDto": {
         "type": "object",
         "properties": {
-          "user_id": {
-            "type": "number",
-            "example": 1,
-            "description": "ID of the user who owns this account"
-          },
           "name": {
             "type": "string",
             "example": "BCA Savings",
@@ -572,7 +640,6 @@
           }
         },
         "required": [
-          "user_id",
           "name",
           "type",
           "balance"
@@ -659,6 +726,14 @@
         ]
       },
       "UpdateTransactionDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "RegisterDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "LoginDto": {
         "type": "object",
         "properties": {}
       }

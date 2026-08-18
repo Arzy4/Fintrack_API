@@ -96,6 +96,7 @@ DELETE  /transactions/:id
 - Account Management (CRUD)
 - Category Management (CRUD)
 - Transaction Management (CRUD)
+- Balance calculation extracted into a dedicated `BalanceCalculatorService` using NestJS Dependency Injection
 - Relational queries using Prisma `include`
 - Request validation with `class-validator`
 - Swagger API documentation
@@ -104,6 +105,12 @@ DELETE  /transactions/:id
 - Prisma ORM integration
 - RESTful API architecture
 - Cloud deployment using Vercel
+
+---
+
+## Dependency Injection
+
+The application uses a dedicated `BalanceCalculatorService` as a custom provider to separate balance calculation logic from `TransactionsService`. This keeps transaction management focused on database operations while **centralizing financial calculation logic into a reusable component**. The separation also **improves testability** because the balance calculation can be tested independently without requiring database access.
 
 ---
 

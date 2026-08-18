@@ -7,12 +7,15 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  UseGuards,
+  Request,
 } from '@nestjs/common';
 
 import { TransactionsService } from './transactions.service';
 import { CreateTransactionDto } from './dto/create-transactions.dto';
 import { UpdateTransactionDto } from './dto/update-transactions.dto';
 import { ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiParam } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('transactions')
 export class TransactionsController {
@@ -20,6 +23,7 @@ export class TransactionsController {
     private readonly transactionsService: TransactionsService,
   ) {}
 
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({
     description: 'Retrieve a list of all transactions, including their related account and category information.',
   })
@@ -27,10 +31,13 @@ export class TransactionsController {
     description: 'Transactions retrieved successfully.',
   })
   @Get()
-  findAll() {
-    return this.transactionsService.findAll();
+  findAll(
+    @Request() req,
+  ) {
+    return this.transactionsService.findAll(req.user.id);
   }
 
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({
     description: 'Retrieve a transaction by its ID, including the related account and category information.',
   })
@@ -43,10 +50,14 @@ export class TransactionsController {
     description: 'Transaction retrieved successfully.',
   })
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.transactionsService.findOne(id);
+  findOne(
+    @Param('id', ParseIntPipe) id: number, 
+    @Request() req
+  ) {
+    return this.transactionsService.findOne(id, req.user.id);
   }
 
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({
     description: 'Create a new financial transaction.',
   })
@@ -56,10 +67,12 @@ export class TransactionsController {
   @Post()
   create(
     @Body() createTransactionDto: CreateTransactionDto,
+    @Request() req,
   ) {
-    return this.transactionsService.create(createTransactionDto);
+    return this.transactionsService.create(createTransactionDto, req.user.id);
   }
 
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({
     description: 'Update an existing financial transaction.',
   })
@@ -75,13 +88,16 @@ export class TransactionsController {
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateTransactionDto: UpdateTransactionDto,
+    @Request() req,
   ) {
     return this.transactionsService.update(
       id,
+      req.user.id,
       updateTransactionDto,
     );
   }
 
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({
     description: 'Delete a financial transaction by its ID.',
   })
@@ -94,7 +110,10 @@ export class TransactionsController {
     description: 'Transaction deleted successfully.',
   })
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.transactionsService.remove(id);
+  remove(
+    @Param('id', ParseIntPipe) id: number,
+    @Request() req,
+  ) {
+    return this.transactionsService.remove(id, req.user.id);
   }
 }

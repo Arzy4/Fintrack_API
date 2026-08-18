@@ -5,16 +5,25 @@ import { UpdateTransactionDto } from './dto/update-transactions.dto';
 import { TransactionResponse } from './interfaces/transactions-response.interfaces';
 import { PrismaService } from '../prisma/prisma.service';
 import { AccountsService } from '../accounts/accounts.service';
+import { BalanceCalculatorService } from './balance-calculator-service';
 
 @Injectable()
 export class TransactionsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly accountsService: AccountsService,
+    private readonly balanceCalculatorService: BalanceCalculatorService,
   ) {}
 
-  async findAll() {
+  async findAll(
+    userId: number
+  ) {
     return this.prisma.transactions.findMany({
+      where: {
+        accounts:{
+          user_id: userId,
+        }
+      },
       include: {
         accounts: {
           select: {
@@ -34,11 +43,15 @@ export class TransactionsService {
   }
 
   async findOne(
-    id: number
+    id: number,
+    userId: number,
   ): Promise<Transaction> {
-    const transaction = await this.prisma.transactions.findUnique({
+    const transaction = await this.prisma.transactions.findFirst({
       where: {
         id,
+        accounts: {
+          user_id: userId,
+        }
       },
       include: {
         accounts: {
@@ -67,32 +80,32 @@ export class TransactionsService {
   }
 
   private async recalculateBalance(
-    accountId: number
+    accountId: number,
+    userId: number,
   ): Promise<void> {
     const transactions = await this.prisma.transactions.findMany({
       where: {
         account_id: accountId,
+        accounts: {
+          user_id: userId,
+        }
       }
     });
 
-    let balance = 0;
+    const balance = this.balanceCalculatorService.calculateBalance(transactions);
 
-    for (const transaction of transactions) {
-      const amount = Number(transaction.amount); // Convert Prisma.Decimal to number
-
-      if (transaction.type === 'income') {
-        balance += amount;
-      } else {
-        balance -= amount;
-      }
-    }
-
-    this.accountsService.updateBalance(accountId, balance);
+    await this.accountsService.updateBalance(accountId, balance, userId);
   }
 
   async create(
-    createTransactionDto: CreateTransactionDto
+    createTransactionDto: CreateTransactionDto,
+    userId: number,
   ): Promise<TransactionResponse> {
+    await this.accountsService.findOne(
+      createTransactionDto.account_id,
+      userId,
+    );
+
     const transaction = await this.prisma.transactions.create({
       data: {
         account_id: createTransactionDto.account_id,
@@ -104,7 +117,7 @@ export class TransactionsService {
       }
     })
 
-    await this.recalculateBalance(transaction.account_id);
+    await this.recalculateBalance(transaction.account_id, userId);
 
     return {
       message: `New Transaction was successfully created`,
@@ -114,12 +127,24 @@ export class TransactionsService {
 
   async update(
     id: number,
+    userId: number,
     updateTransactionDto: UpdateTransactionDto,
   ): Promise<TransactionResponse> {
-    const transaction = await this.findOne(id);
+    const transaction = await this.findOne(id, userId);
 
     // Save the old account ID in case the transaction is moved
     const oldAccountId = transaction.account_id;
+
+    // Verify new account belongs to authenticated user
+    if (
+      updateTransactionDto.account_id &&
+      updateTransactionDto.account_id !== oldAccountId
+    ) {
+      await this.accountsService.findOne(
+        updateTransactionDto.account_id,
+        userId,
+      );
+    }
 
     const updatedTransaction = await this.prisma.transactions.update({
       where:{
@@ -129,14 +154,14 @@ export class TransactionsService {
     });
 
     // Recalculate the old account
-    await this.recalculateBalance(oldAccountId);
+    await this.recalculateBalance(oldAccountId, userId);
 
     // If the account changed, recalculate the new one too
     if (
       updateTransactionDto.account_id &&
       updateTransactionDto.account_id !== oldAccountId
     ) {
-      this.recalculateBalance(updateTransactionDto.account_id);
+      await this.recalculateBalance(updateTransactionDto.account_id, userId);
     }
 
     const updatedFields = Object.keys(updateTransactionDto).join(', ');
@@ -148,9 +173,10 @@ export class TransactionsService {
   }
 
   async remove(
-    id: number
+    id: number,
+    userId: number,
   ): Promise<TransactionResponse> {
-    const transaction = await this.findOne(id);
+    const transaction = await this.findOne(id, userId);
 
     const deleted = await this.prisma.transactions.delete({
       where:{
@@ -158,7 +184,7 @@ export class TransactionsService {
       },
     });;
 
-    await this.recalculateBalance(transaction.account_id);
+    await this.recalculateBalance(transaction.account_id, userId);
 
     return {
       message: `Transaction with ID ${id} was successfully deleted`,
