@@ -1,5 +1,4 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Category } from './interfaces/categories.interfaces';
 import { CategoryResponse } from './interfaces/categories-response.interfaces';
 import { CreateCategoryDto } from './dto/create-categories.dto';
 import { PrismaService } from '../prisma/prisma.service';

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { Transaction } from './interfaces/transactions.interfaces';
 import { CreateTransactionDto } from './dto/create-transactions.dto';
 import { UpdateTransactionDto } from './dto/update-transactions.dto';
@@ -71,8 +71,8 @@ export class TransactionsService {
     });
 
     if (!transaction) {
-      throw new NotFoundException(
-        `Transaction with ID ${id} not found`,
+      throw new ForbiddenException(
+        `You can only access your own transaction information`,
       );
     }
 

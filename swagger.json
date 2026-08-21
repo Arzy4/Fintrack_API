@@ -19,21 +19,18 @@
     },
     "/api/users": {
       "get": {
-        "description": "Retrieve a list of all registered users.",
         "operationId": "UsersController_findAll",
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Users retrieved successfully."
+            "description": ""
           }
         },
-        "summary": "",
         "tags": [
           "Users"
         ]
       },
       "post": {
-        "description": "Create a new user account.",
         "operationId": "UsersController_create",
         "parameters": [],
         "requestBody": {
@@ -48,10 +45,9 @@
         },
         "responses": {
           "201": {
-            "description": "User created successfully."
+            "description": ""
           }
         },
-        "summary": "",
         "tags": [
           "Users"
         ]
@@ -59,41 +55,34 @@
     },
     "/api/users/{id}": {
       "get": {
-        "description": "Retrieve a specific user by ID.",
         "operationId": "UsersController_findOne",
         "parameters": [
           {
             "name": "id",
             "required": true,
             "in": "path",
-            "description": "User ID",
             "schema": {
-              "example": 1,
               "type": "number"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "User retrieved successfully."
+            "description": ""
           }
         },
-        "summary": "",
         "tags": [
           "Users"
         ]
       },
       "patch": {
-        "description": "Update an existing user by ID.",
         "operationId": "UsersController_update",
         "parameters": [
           {
             "name": "id",
             "required": true,
             "in": "path",
-            "description": "User ID",
             "schema": {
-              "example": 1,
               "type": "number"
             }
           }
@@ -110,35 +99,30 @@
         },
         "responses": {
           "200": {
-            "description": "User updated successfully."
+            "description": ""
           }
         },
-        "summary": "",
         "tags": [
           "Users"
         ]
       },
       "delete": {
-        "description": "Delete a user by ID.",
         "operationId": "UsersController_remove",
         "parameters": [
           {
             "name": "id",
             "required": true,
             "in": "path",
-            "description": "User ID",
             "schema": {
-              "example": 1,
               "type": "number"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "User deleted successfully."
+            "description": ""
           }
         },
-        "summary": "",
         "tags": [
           "Users"
         ]

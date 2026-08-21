@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateAccountDto } from './dto/create-account.dto';
 import { UpdateAccountDto } from './dto/update-account.dto';
@@ -27,8 +27,8 @@ export class AccountsService {
     });
 
     if (!account){
-      throw new NotFoundException(
-        `Account with ID ${id} not found`,
+      throw new ForbiddenException(
+        `You can only access your own account information`,
       );
     }
 

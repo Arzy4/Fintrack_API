@@ -1,9 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-users.dto';
 import { UserResponse } from './interfaces/users-response.interfaces';
 import { UpdateUserDto } from './dto/update-users.dto';
-import { User } from './interfaces/users.interfaces';
 
 @Injectable()
 export class UsersService {
@@ -13,26 +12,48 @@ export class UsersService {
 
 
   async findAll() {
-    return this.prisma.users.findMany();
+    return this.prisma.users.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        created_at: true,
+      }
+    });
   }
 
-  async findOne(
-      id: number
-    ): Promise<User> {
-      const user = await this.prisma.users.findUnique({
-        where: {
-          id,
-        }
+  async findOne(id: number, userId: number, role: string) {
+    if (role === 'admin') {
+      return this.prisma.users.findUnique({
+        where: { id },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          created_at: true,
+        },
       });
-  
-      if (!user) {
-        throw new NotFoundException(
-          `User with ID ${id} not found`,
-        );
-      }
-  
-      return user;
     }
+
+    if (id !== userId) {
+      throw new ForbiddenException(
+        'You can only access your own user information',
+      );
+    }
+
+    return this.prisma.users.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        created_at: true,
+      }
+    });
+  }
 
   async findByEmail(email: string) {
     return this.prisma.users.findUnique({
@@ -53,6 +74,13 @@ export class UsersService {
         password: createUserDto.password,
         role: "user",
       },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        created_at: true,
+      },
     });
 
     return {
@@ -64,14 +92,30 @@ export class UsersService {
   async update(
     id: number,
     updateUserDto: UpdateUserDto,
+    userId: number,
+    role: string,
   ): Promise<UserResponse> {
-    await this.findOne(id);
+
+    if (role !== 'admin' && id !== userId) {
+      throw new ForbiddenException(
+        'You can only update your own information',
+      );
+    }
+
+    await this.findOne(id, userId, role);
 
     const user = await this.prisma.users.update({
       where: {
         id,
       },
       data: updateUserDto,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        created_at: true,
+      },
     });
 
     return {
@@ -82,8 +126,21 @@ export class UsersService {
 
   async remove(
     id: number,
+    userId: number,
+    role: string,
   ): Promise<UserResponse> {
-    const user = await this.findOne(id);
+
+    if (role !== 'admin' && id !== userId) {
+      throw new ForbiddenException(
+        'You can only delete your own account',
+      );
+    }
+
+    const user = await this.findOne(id, userId, role);
+
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
 
     await this.prisma.users.delete({
       where: {

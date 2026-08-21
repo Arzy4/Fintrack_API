@@ -9,12 +9,21 @@ import { TransactionsModule } from './transactions/transactions.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { LoggerMiddleware } from './commons/middleware/logger.middleware';
 import { AuthModule } from './auth/auth.module';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+
+    ThrottlerModule.forRoot([
+    {
+      ttl: 60000,
+      limit: 5,
+    },
+  ]),
+
     PrismaModule,
     UsersModule,
     AccountsModule,
@@ -25,10 +34,4 @@ import { AuthModule } from './auth/auth.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer
-    .apply(LoggerMiddleware)
-    .forRoutes({path: '*', method: RequestMethod.ALL});
-  }
-}
+export class AppModule{}

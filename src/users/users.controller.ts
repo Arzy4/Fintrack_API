@@ -1,88 +1,84 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
+
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-users.dto';
 import { UpdateUserDto } from './dto/update-users.dto';
-import {
-  ApiOperation,
-  ApiOkResponse,
-  ApiCreatedResponse,
-  ApiParam,
-} from '@nestjs/swagger';
+
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+  ) {}
 
-  @ApiOperation({
-    description: 'Retrieve a list of all registered users.',
-  })
-  @ApiOkResponse({
-    description: 'Users retrieved successfully.',
-  })  
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   @Get()
   findAll() {
     return this.usersService.findAll();
   }
 
-  @ApiOperation({
-    description: 'Retrieve a specific user by ID.',
-  })
-  @ApiParam({
-    name: 'id',
-    example: 1,
-    description: 'User ID',
-  })
-  @ApiOkResponse({
-    description: 'User retrieved successfully.',
-  })
-  @Get(`:id`)
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.usersService.findOne(id);
+  @UseGuards(JwtAuthGuard)
+  @Get(':id')
+  findOne(
+    @Param('id', ParseIntPipe) id: number,
+    @Request() req: any,
+  ) {
+    return this.usersService.findOne(
+      id,
+      req.user.id,
+      req.user.role,
+    );
   }
 
-  @ApiOperation({
-    description: 'Create a new user account.',
-  })
-  @ApiCreatedResponse({
-    description: 'User created successfully.',
-  })
+  @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() createUserDto: CreateUserDto) {
+  create(
+    @Body() createUserDto: CreateUserDto,
+    @Request() req,
+  ) {
     return this.usersService.create(createUserDto);
   }
 
-  @ApiOperation({
-    description: 'Update an existing user by ID.',
-  })
-  @ApiParam({
-    name: 'id',
-    example: 1,
-    description: 'User ID',
-  })
-  @ApiOkResponse({
-    description: 'User updated successfully.',
-  })
-  @Patch(`:id`)
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id')
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateUserDto: UpdateUserDto,
+    @Request() req,
   ) {
-    return this.usersService.update(id, updateUserDto);
+    return this.usersService.update(
+      id,
+      updateUserDto,
+      req.user.id,
+      req.user.role,
+    );
   }
 
-  @ApiOperation({
-    description: 'Delete a user by ID.',
-  })
-  @ApiParam({
-    name: 'id',
-    example: 1,
-    description: 'User ID',
-  })
-  @ApiOkResponse({
-    description: 'User deleted successfully.',
-  })
-  @Delete(`:id`)
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.usersService.remove(id);
+  @UseGuards(JwtAuthGuard)
+  @Delete(':id')
+  remove(
+    @Param('id', ParseIntPipe) id: number,
+    @Request() req,
+  ) {
+    return this.usersService.remove(
+      id,
+      req.user.id,
+      req.user.role,
+    );
   }
 }

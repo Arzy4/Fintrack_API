@@ -7,12 +7,16 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-categories.dto';
 import { UpdateCategoryDto } from './dto/update-categories.dto';
 import { ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiParam } from '@nestjs/swagger';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('categories')
 export class CategoriesController {
@@ -45,6 +49,8 @@ export class CategoriesController {
     return this.categoriesService.findOne(id);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   @ApiOperation({
     description: 'Create a new transaction category.',
   })
@@ -56,6 +62,8 @@ export class CategoriesController {
     return this.categoriesService.create(createCategoryDto);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin') 
   @ApiOperation({
     description: 'Update an existing transaction category.',
   })
@@ -75,6 +83,8 @@ export class CategoriesController {
     return this.categoriesService.update(id, updateCategoryDto);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles("admin")
   @ApiOperation({
     description: 'Delete a transaction category by ID.',
   })
