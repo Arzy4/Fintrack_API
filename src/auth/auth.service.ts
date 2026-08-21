@@ -21,15 +21,7 @@ export class AuthService {
         throw new ConflictException('Email already in use');
         }
 
-        const hashedPassword = await bcrypt.hash(
-        registerDto.password,
-        10,
-        );
-
-        return this.usersService.create({
-        ...registerDto,
-        password: hashedPassword,
-        });
+        return this.usersService.create(registerDto);
     }
 
     async login(loginDto: LoginDto) {
