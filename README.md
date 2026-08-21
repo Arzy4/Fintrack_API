@@ -37,10 +37,18 @@ https://nestjs-project-five.vercel.app/api
 GET     /health
 ```
 
+#### Auth
+
+```
+POST    /auth/register
+POST    /auth/login
+```
+
 #### Users
 
 ```
 GET     /users
+GET     /users/:id
 POST    /users
 PATCH   /users/:id
 DELETE  /users/:id
@@ -108,9 +116,54 @@ DELETE  /transactions/:id
 
 ---
 
-## Dependency Injection
+## Architecture
+
+FinTrack API follows a modular RESTful architecture built with NestJS. The application is organized into feature-based modules, with each module responsible for a specific part of the financial management system.
+
+### Module Structure
+- **Auth Module** – Handles user registration, login, password hashing, JWT generation, and authentication.
+- **Users Module** – Handles user management and user-related CRUD operations.
+- **Accounts Module** – Manages financial accounts owned by users.
+- **Categories Module** – Manages income and expense categories.
+- **Transactions Module** – Manages financial transactions and updates account balances.
+- **Prisma Module** – Provides the Prisma database client through dependency injection.
+- **BalanceCalculatorService** – Handles balance calculation logic separately from transaction management.
+
+NestJS controllers handle HTTP requests and delegate business logic to services. Services interact with PostgreSQL through Prisma ORM. The general request flow is:
+
+`Client → Controller → Guard/Middleware → Service → Prisma → PostgreSQL`
+
+This modular structure keeps responsibilities separated and makes the application easier to maintain and test.
+
+### Dependency Injection
 
 The application uses a dedicated `BalanceCalculatorService` as a custom provider to separate balance calculation logic from `TransactionsService`. This keeps transaction management focused on database operations while **centralizing financial calculation logic into a reusable component**. The separation also **improves testability** because the balance calculation can be tested independently without requiring database access.
+
+### Authorization and Authentication Flow
+
+FinTrack API uses JWT-based authentication and role-based authorization.
+
+#### Authentication Flow
+
+1. A user registers through `POST /auth/register`.
+2. The user's password is hashed using `bcrypt` before being stored in the database.
+3. The user logs in through `POST /auth/login`.
+4. After successful authentication, the API generates a JWT containing the authenticated user's identity and role.
+5. The client sends the JWT using the `Authorization: Bearer <token>` header.
+6. `JwtAuthGuard` validates the JWT before allowing access to protected endpoints.
+7. The authenticated user's ID is available through `req.user.id`.
+8. Ownership checks ensure users can only access their own accounts and transactions.
+
+#### Role-Based Access Control
+
+FinTrack API supports two roles:
+
+- `user`
+- `admin`
+
+Admin-only endpoints are protected using role-based authorization. A normal user attempting to access an admin-only endpoint receives a `403 Forbidden` response. The authorization flow can be summarized as:
+
+`Client → JWT → JwtAuthGuard → User Identity → Role/Ownership Check → Controller → Service`
 
 ---
 
@@ -141,11 +194,12 @@ The Entity Relationship Diagram (ERD) illustrates the database structure of the 
 
 ## Environment Variables
 
-Create a `.env` file in the project root.
+Create a `.env` file in the project root based on `.env.example`.
 
 ```env
-DATABASE_URL="postgresql://username:password@host/database?sslmode=require"
+DATABASE_URL=postgresql://postgres:your_password@localhost:5432/fintrack
 PORT=3000
+JWT_SECRET="your-jwt-secret"
 ```
 
 ### Environment Variable Description
@@ -154,6 +208,7 @@ PORT=3000
 |----------|-------------|
 | `DATABASE_URL` | PostgreSQL connection string used by Prisma ORM (e.g., Neon PostgreSQL). |
 | `PORT` | Port used to run the NestJS application locally. Default: `3000`. |
+| JWT_SECRET | Secret key used to sign and verify JWT authentication tokens. |
 
 ### Local Development
 
@@ -320,10 +375,25 @@ docs/
 
 The collection includes:
 
-- Complete CRUD endpoints
-- Example request bodies for POST and PATCH
-- Success response examples
-- Validation error (400) response examples
+- Health check endpoint
+- User registration and login
+- Complete JWT authentication flow
+- Automatic saving of the login token into the `token` environment variable
+- Authorized requests using `Bearer {{token}}`
+- Complete CRUD endpoints for users, accounts, categories, and transactions
+- Example request bodies for POST and PATCH requests
+- Successful response examples
+- Validation error (`400`) response examples
+- Role-based authorization examples
+- A `403 Forbidden` example showing a non-admin user being blocked from an admin-only endpoint
+
+### Authentication Flow in Postman
+
+After a successful login, the returned JWT is automatically saved into the `token` environment variable. Protected requests use:
+
+```text
+Authorization: Bearer {{token}}
+```
 
 ---
 
