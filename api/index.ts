@@ -1,33 +1,44 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from '../src/app.module';
 import { ValidationPipe } from '@nestjs/common';
+import { ExpressAdapter } from '@nestjs/platform-express';
+import { AppModule } from '../src/app.module';
+import { setupSwagger } from '../src/swagger.config';
+import express from 'express';
 
-let app;
+const server = express();
+
+let appPromise: Promise<void> | undefined;
 
 async function bootstrap() {
-  if (!app) {
-    app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(
+    AppModule,
+    new ExpressAdapter(server),
+  );
 
-    app.setGlobalPrefix('api');
+  app.setGlobalPrefix('api');
 
-    app.useGlobalPipes(
-      new ValidationPipe({
-        whitelist: true,
-        forbidNonWhitelisted: true,
-        transform: true,
-      }),
-    );
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
 
-    await app.init();
-  }
+  setupSwagger(app);
 
-  return app;
+  await app.init();
 }
 
-export default async function handler(req, res) {
-  const app = await bootstrap();
+export default async function handler(req: any, res: any) {
+  if (!appPromise) {
+    appPromise = bootstrap().catch((error) => {
+      appPromise = undefined;
+      throw error;
+    });
+  }
 
-  const instance = app.getHttpAdapter().getInstance();
+  await appPromise;
 
-  return instance(req, res);
+  return server(req, res);
 }

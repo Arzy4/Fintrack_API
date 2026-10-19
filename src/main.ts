@@ -1,15 +1,14 @@
 import { NestFactory } from '@nestjs/core';
+import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import { writeFileSync } from 'fs';
-import { ValidationPipe } from '@nestjs/common/pipes/validation.pipe';
+import { setupSwagger } from './swagger.config';
 import helmet from 'helmet';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.enableCors({
-    origin: "http://localhost:65348",
+    origin: 'http://localhost:65348',
   });
 
   app.use(helmet());
@@ -24,19 +23,9 @@ async function bootstrap() {
     }),
   );
 
-  const config = new DocumentBuilder()
-    .setTitle('Fintrack API')
-    .setDescription('The Fintrack API description')
-    .setVersion('1.0')
-    .build();
+  setupSwagger(app);
 
-  const document = SwaggerModule.createDocument(app, config);
-
-  writeFileSync('./swagger.json', JSON.stringify(document, null, 2));
-
-  SwaggerModule.setup('api/docs', app, document);
-
-  await app.listen(3000);
+  await app.listen(process.env.PORT || 3000);
 }
 
 bootstrap();
